@@ -1,0 +1,45 @@
+name: Docker
+
+on:
+  workflow_dispatch:
+
+jobs:
+  cross:
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        python-version: ['3.6', '3.7', '3.8', '3.9', '3.10', '3.11', '3.12']
+    name: Cross build (Python ${{ matrix.python-version }})
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Install cross-compiler
+        run: |
+          sudo apt-get update
+          sudo apt-get install gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+      - name: Install native Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Cache Python
+        uses: actions/cache@v4
+        id: cache
+        with:
+          path: staging/python${{ matrix.python-version }}
+          key: ${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('build-python.sh') }}
+      - name: Install cross Python
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: bash build-python.sh ${{ matrix.python-version }}
+      - name: Install pybind11
+        run: bash build-pybind11.sh
+      - name: Configure
+        run: >
+          cmake -S . -B build -G Ninja
+            --toolchain=./toolchain.cmake
+            -D CMAKE_FIND_ROOT_PATH="$PWD/staging/pybind11;$PWD/staging/python${{ matrix.python-version }}"
+            -D Python_ROOT_DIR="$PWD/staging/python${{ matrix.python-version }}/usr/local"
+      - name: Build
+        run: >
+          cmake --build build --verbose
