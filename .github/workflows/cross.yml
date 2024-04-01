@@ -131,11 +131,20 @@ jobs:
     runs-on: macos-11
     strategy:
       matrix:
-        python-version: ['3.9.13', '3.10.11', '3.11.8', '3.12.2']
+        python-version: ['3.9', '3.10', '3.11', '3.12']
         macos-version: ['11']
         include:
-          - python-version: '3.8.10'
-            macos-version: '10.9'
+          - python-version: '3.8'
+            full-python-version: '3.8.10'
+            macos-version: 'x10.9'
+          - python-version: '3.9'
+            full-python-version: '3.9.13'
+          - python-version: '3.10'
+            full-python-version: '3.10.11'
+          - python-version: '3.11'
+            full-python-version: '3.11.8'
+          - python-version: '3.12'
+            full-python-version: '3.12.2'
     name: Cross pybind11 macOS (Python ${{ matrix.python-version }})
 
     steps:
@@ -144,18 +153,18 @@ jobs:
           submodules: recursive
       - name: Download cross Python
         run: |
-          wget https://www.python.org/ftp/python/${{ matrix.python-version }}/python-${{ matrix.python-version }}-macosx${{ matrix.macos-version }}.pkg -O /tmp/Python.pkg
-          sudo installer -pkg /tmp/Python.pkg -target "$PWD/staging/python${{ matrix.python-version }}"
+          wget https://www.python.org/ftp/python/${{ matrix.full-python-version }}/python-${{ matrix.full-python-version }}-macos${{ matrix.macos-version }}.pkg -O /tmp/Python.pkg
+          sudo installer -pkg /tmp/Python.pkg -target /
       - name: Check cross Python
-        run: ls staging/python${{ matrix.python-version }} && ls staging/python${{ matrix.python-version }}/*
+        run: ls "/Library/Frameworks/Python.framework/Versions/${{ matrix.python-version }}"
       - name: Install pybind11
-        run: ./build-pybind11.mac.sh
+        run: bash ./build-pybind11.mac.sh
       - name: Configure
         run: >
           cmake -S . -B build
           -D CMAKE_TOOLCHAIN_FILE="$PWD/toolchain-mac.cmake"
-          -D CMAKE_FIND_ROOT_PATH="$PWD/staging/pybind11;$PWD/staging/python${{ matrix.python-version }}"
-          -D Python_ROOT_DIR="$PWD/staging/python${{ matrix.python-version }}"
+          -D CMAKE_FIND_ROOT_PATH="$PWD/staging/pybind11;/Library/Frameworks/Python.framework/Versions/${{ matrix.python-version }}"
+          -D Python_ROOT_DIR="/Library/Frameworks/Python.framework/Versions/${{ matrix.python-version }}"
       - name: Build
         run: >
           cmake --build build --verbose
