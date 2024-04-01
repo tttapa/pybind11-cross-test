@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.18)
+cmake_minimum_required(VERSION 3.15)
 project(pybind11-project VERSION 0.2.0)
 
 set(PYBIND11_FINDPYTHON On)
