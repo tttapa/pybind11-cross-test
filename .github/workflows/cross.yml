@@ -18,7 +18,7 @@ jobs:
       - name: Install cross-compiler
         run: |
           sudo apt-get update
-          sudo apt-get install gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+          sudo apt-get install gcc-aarch64-linux-gnu g++-aarch64-linux-gnu ninja-build
       - name: Install native Python
         uses: actions/setup-python@v5
         with:
