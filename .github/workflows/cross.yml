@@ -5,12 +5,12 @@ on:
   workflow_dispatch:
 
 jobs:
-  cross-python:
+  cross-python-linux:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
         python-version: ['3.6', '3.7', '3.8', '3.9', '3.10', '3.11', '3.12']
-    name: Cross Python (Python ${{ matrix.python-version }})
+    name: Cross-compile Python ${{ matrix.python-version }}
 
     steps:
       - uses: actions/checkout@v4
@@ -38,16 +38,16 @@ jobs:
       - name: Upload cross Python
         uses: actions/upload-artifact@v4
         with:
-          name: cross-python-${{ matrix.python-version }}
+          name: cross-python-linux-${{ matrix.python-version }}
           path: staging.tar.gz
   
-  cross:
-    needs: [cross-python]
+  cross-linux:
+    needs: [cross-python-linux]
     runs-on: ubuntu-20.04
     strategy:
       matrix:
         python-version: ['3.6', '3.7', '3.8', '3.9', '3.10', '3.11', '3.12']
-    name: Cross pybind11 (Python ${{ matrix.python-version }})
+    name: Cross pybind11 (Linux, Python ${{ matrix.python-version }})
 
     steps:
       - uses: actions/checkout@v4
@@ -60,7 +60,7 @@ jobs:
       - name: Download cross Python
         uses: actions/download-artifact@v4
         with:
-          name: cross-python-${{ matrix.python-version }}
+          name: cross-python-linux-${{ matrix.python-version }}
       - name: Extract cross Python
         run: tar xzf staging.tar.gz
       - name: Install pybind11
@@ -98,7 +98,7 @@ jobs:
             ext-suffix: .cp311-win_arm64.pyd
           - python-version: '3.12.2'
             ext-suffix: .cp312-win_arm64.pyd
-    name: Cross pybind11 Windows (Python ${{ matrix.python-version }})
+    name: Cross pybind11 (Windows, Python ${{ matrix.python-version }})
 
     steps:
       - uses: actions/checkout@v4
@@ -145,7 +145,7 @@ jobs:
             full-python-version: '3.11.8'
           - python-version: '3.12'
             full-python-version: '3.12.2'
-    name: Cross pybind11 macOS (Python ${{ matrix.python-version }})
+    name: Cross pybind11 (macOS, Python ${{ matrix.python-version }})
 
     steps:
       - uses: actions/checkout@v4
