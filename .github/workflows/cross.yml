@@ -70,6 +70,7 @@ jobs:
           --toolchain=./toolchain.cmake
           -D CMAKE_FIND_ROOT_PATH="$PWD/staging/pybind11;$PWD/staging/python${{ matrix.python-version }}"
           -D Python_ROOT_DIR="$PWD/staging/python${{ matrix.python-version }}/usr/local"
+          -D Python_FIND_ABI="ANY;ANY;ANY"
       - name: Build
         run: >
           cmake --build build --verbose
