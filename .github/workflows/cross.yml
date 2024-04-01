@@ -1,6 +1,7 @@
 name: Cross build
 
 on:
+  push:
   workflow_dispatch:
 
 jobs:
@@ -68,7 +69,7 @@ jobs:
         if: ${{ matrix.python-version == '3.6' || matrix.python-version == '3.7' }}
         run: >
           cmake -S . -B build -G Ninja
-          -D CMAKE_TOOLCHAIN_FILE=./toolchain.cmake
+          -D CMAKE_TOOLCHAIN_FILE="$PWD/toolchain.cmake"
           -D CMAKE_FIND_ROOT_PATH="$PWD/staging/pybind11;$PWD/staging/python${{ matrix.python-version }}"
           -D Python_ROOT_DIR="$PWD/staging/python${{ matrix.python-version }}/usr/local"
           -D Python_FIND_ABI="ANY;ANY;ANY"
@@ -76,9 +77,52 @@ jobs:
         if: ${{ matrix.python-version != '3.6' && matrix.python-version != '3.7' }}
         run: >
           cmake -S . -B build -G Ninja
-          -D CMAKE_TOOLCHAIN_FILE=./toolchain.cmake
+          -D CMAKE_TOOLCHAIN_FILE="$PWD/toolchain.cmake"
           -D CMAKE_FIND_ROOT_PATH="$PWD/staging/pybind11;$PWD/staging/python${{ matrix.python-version }}"
           -D Python_ROOT_DIR="$PWD/staging/python${{ matrix.python-version }}/usr/local"
+      - name: Build
+        run: >
+          cmake --build build --verbose
+
+  cross-windows:
+    runs-on: windows-2022
+    strategy:
+      matrix:
+        python-version: ['3.9.10', '3.10.11', '3.11.8', '3.12.2']
+        include:
+          - python-version: '3.9.10'
+            ext-suffix: .cp39-win_arm64.pyd
+          - python-version: '3.10.11'
+            ext-suffix: .cp310-win_arm64.pyd
+          - python-version: '3.11.8'
+            ext-suffix: .cp311-win_arm64.pyd
+          - python-version: '3.12.2'
+            ext-suffix: .cp312-win_arm64.pyd
+    name: Cross pybind11 Windows (Python ${{ matrix.python-version }})
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Download cross Python
+        run: >
+          nuget install pythonarm64
+          -Version ${{ matrix.python-version }}
+          -FallbackSource https://api.nuget.org/v3/index.json
+          -OutputDirectory "$(pwd)/staging/"
+      - name: Check cross Python
+        run: ls staging/pythonarm64.${{ matrix.python-version }} && ls staging/pythonarm64.${{ matrix.python-version }}/tools
+      - name: Install pybind11
+        run: ./build-pybind11.ps1
+      - name: Configure
+        run: >
+          cmake -S . -B build
+          -D CMAKE_TOOLCHAIN_FILE="$(pwd)/toolchain-win.cmake"
+          -D CMAKE_FIND_ROOT_PATH="$(pwd)/staging/pybind11;$(pwd)/staging/pythonarm64.${{ matrix.python-version }}"
+          -D Python_ROOT_DIR="$(pwd)/staging/pythonarm64.${{ matrix.python-version }}/tools"
+          -D pybind11_DIR="$(pwd)/staging/pybind11/share/cmake/pybind11"
+        env:
+          SETUPTOOLS_EXT_SUFFIX: ${{ matrix.ext-suffix }}
       - name: Build
         run: >
           cmake --build build --verbose
