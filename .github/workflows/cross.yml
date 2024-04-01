@@ -13,20 +13,22 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: Install cross-compiler
-        run: |
-          sudo apt-get update
-          sudo apt-get install gcc-aarch64-linux-gnu g++-aarch64-linux-gnu ninja-build
-      - name: Install native Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
       - name: Cache Python
         uses: actions/cache@v4
         id: cache
         with:
           path: staging/python${{ matrix.python-version }}
           key: ${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('build-python.sh') }}
+      - name: Install cross-compiler
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install gcc-aarch64-linux-gnu g++-aarch64-linux-gnu ninja-build
+      - name: Install native Python
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
       - name: Install cross Python
         if: steps.cache.outputs.cache-hit != 'true'
         run: bash build-python.sh ${{ matrix.python-version }}
@@ -67,10 +69,9 @@ jobs:
       - name: Configure
         run: >
           cmake -S . -B build -G Ninja
-            --toolchain=./toolchain.cmake
-            -D CMAKE_FIND_ROOT_PATH="$PWD/staging/pybind11;$PWD/staging/python${{ matrix.python-version }}"
-            -D Python_ROOT_DIR="$PWD/staging/python${{ matrix.python-version }}/usr/local"
-            -D pybind11_DIR="$PWD/staging/pybind11/usr/local/share/cmake/pybind11"
+          --toolchain=./toolchain.cmake
+          -D CMAKE_FIND_ROOT_PATH="$PWD/staging/pybind11;$PWD/staging/python${{ matrix.python-version }}"
+          -D Python_ROOT_DIR="$PWD/staging/python${{ matrix.python-version }}/usr/local"
       - name: Build
         run: >
           cmake --build build --verbose
