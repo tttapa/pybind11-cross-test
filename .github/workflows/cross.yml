@@ -65,12 +65,20 @@ jobs:
       - name: Install pybind11
         run: bash build-pybind11.sh
       - name: Configure
+        if: ${{ matrix.python-version == '3.6' || matrix.python-version == '3.7' }}
         run: >
           cmake -S . -B build -G Ninja
           --toolchain=./toolchain.cmake
           -D CMAKE_FIND_ROOT_PATH="$PWD/staging/pybind11;$PWD/staging/python${{ matrix.python-version }}"
           -D Python_ROOT_DIR="$PWD/staging/python${{ matrix.python-version }}/usr/local"
           -D Python_FIND_ABI="ANY;ANY;ANY"
+      - name: Configure
+        if: ${{ matrix.python-version != '3.6' && matrix.python-version != '3.7' }}
+        run: >
+          cmake -S . -B build -G Ninja
+          --toolchain=./toolchain.cmake
+          -D CMAKE_FIND_ROOT_PATH="$PWD/staging/pybind11;$PWD/staging/python${{ matrix.python-version }}"
+          -D Python_ROOT_DIR="$PWD/staging/python${{ matrix.python-version }}/usr/local"
       - name: Build
         run: >
           cmake --build build --verbose
