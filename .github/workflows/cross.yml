@@ -9,7 +9,7 @@ jobs:
     strategy:
       matrix:
         python-version: ['3.6', '3.7', '3.8', '3.9', '3.10', '3.11', '3.12']
-    name: Cross build (Python ${{ matrix.python-version }})
+    name: Cross Python (Python ${{ matrix.python-version }})
 
     steps:
       - uses: actions/checkout@v4
@@ -46,7 +46,7 @@ jobs:
     strategy:
       matrix:
         python-version: ['3.6', '3.7', '3.8', '3.9', '3.10', '3.11', '3.12']
-    name: Cross build (Python ${{ matrix.python-version }})
+    name: Cross pybind11 (Python ${{ matrix.python-version }})
 
     steps:
       - uses: actions/checkout@v4
@@ -64,11 +64,6 @@ jobs:
         run: tar xzf staging.tar.gz
       - name: Install pybind11
         run: bash build-pybind11.sh
-      - name: Sanity check
-        run: >
-          cmake --version &&
-          echo $PWD/staging/pybind11/usr/local/share/cmake/pybind11 &&
-          ls $PWD/staging/pybind11/usr/local/share/cmake/pybind11
       - name: Configure
         run: >
           cmake -S . -B build -G Ninja
