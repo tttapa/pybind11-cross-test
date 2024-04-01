@@ -32,11 +32,13 @@ jobs:
       - name: Install cross Python
         if: steps.cache.outputs.cache-hit != 'true'
         run: bash build-python.sh ${{ matrix.python-version }}
+      - name: Tar cross Python
+        run: tar czf staging.tar.gz staging
       - name: Upload cross Python
         uses: actions/upload-artifact@v4
         with:
           name: cross-python-${{ matrix.python-version }}
-          path: staging
+          path: staging.tar.gz
   
   cross:
     needs: [cross-python]
@@ -58,7 +60,8 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: cross-python-${{ matrix.python-version }}
-          path: staging
+      - name: Extract cross Python
+        run: tar xzf staging.tar.gz
       - name: Install pybind11
         run: bash build-pybind11.sh
       - name: Sanity check
