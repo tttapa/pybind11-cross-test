@@ -38,7 +38,7 @@ jobs:
         run: >
           cmake -S . -B build -G Ninja
             --toolchain=./toolchain.cmake
-            -D CMAKE_FIND_ROOT_PATH="$PWD/staging/pybind11/usr/local;$PWD/staging/python${{ matrix.python-version }}/usr/local"
+            -D CMAKE_FIND_ROOT_PATH="$PWD/staging/pybind11;$PWD/staging/python${{ matrix.python-version }}"
             -D Python_ROOT_DIR="$PWD/staging/python${{ matrix.python-version }}/usr/local"
       - name: Build
         run: >
