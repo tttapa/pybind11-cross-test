@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
 project(pybind11-project VERSION 0.2.0)
 
-set(PYBIND11_CROSSCOMPILING ${CMAKE_CROSSCOMPILING})
+set(PYBIND11_USE_CROSSCOMPILING On)
 set(PYBIND11_FINDPYTHON On)
 find_package(pybind11 REQUIRED)
 
